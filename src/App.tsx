@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CartProvider } from '@/lib/cart';
 import Hero from '@/components/Hero';
 import ProductGrid from '@/components/ProductGrid';
@@ -9,6 +9,19 @@ import AdminPanel from '@/components/AdminPanel';
 
 export default function App() {
   const [adminOpen, setAdminOpen] = useState(false);
+
+  useEffect(() => {
+    if (window.location.pathname === '/admin') {
+      setAdminOpen(true);
+    }
+  }, []);
+
+  const closeAdmin = () => {
+    setAdminOpen(false);
+    if (window.location.pathname === '/admin') {
+      window.history.pushState({}, '', '/');
+    }
+  };
 
   return (
     <CartProvider>
@@ -31,7 +44,7 @@ export default function App() {
         </svg>
       </button>
 
-      {adminOpen && <AdminPanel onClose={() => setAdminOpen(false)} />}
+      {adminOpen && <AdminPanel onClose={closeAdmin} />}
     </CartProvider>
   );
 }
