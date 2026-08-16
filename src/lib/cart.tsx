@@ -1,7 +1,19 @@
 import { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from 'react';
-import type { Product } from '@/lib/constants';
 
-export interface CartItem extends Product {
+export interface StorefrontProduct {
+  id: string;
+  name: string;
+  price: number;
+  oldPrice?: number;
+  image: string;
+  ageRange: string;
+  rating: number;
+  reviews: number;
+  badge?: string;
+  category: string;
+}
+
+export interface CartItem extends StorefrontProduct {
   qty: number;
   size: string;
 }
@@ -16,7 +28,7 @@ interface CartContextValue {
   closeCart: () => void;
   openCheckout: () => void;
   closeCheckout: () => void;
-  addItem: (product: Product, size: string) => void;
+  addItem: (product: StorefrontProduct, size: string) => void;
   removeItem: (id: string, size: string) => void;
   updateQty: (id: string, size: string, delta: number) => void;
   clear: () => void;
@@ -29,7 +41,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
-  const addItem = useCallback((product: Product, size: string) => {
+  const addItem = useCallback((product: StorefrontProduct, size: string) => {
     setItems((prev) => {
       const existing = prev.find((i) => i.id === product.id && i.size === size);
       if (existing) {
