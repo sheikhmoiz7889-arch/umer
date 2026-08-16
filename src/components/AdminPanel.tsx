@@ -2,15 +2,42 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutGrid, Package, ArrowLeft, Plus, Trash2, Pencil, X, Check,
-  Upload, Star, Loader2, Search, Save,
+  Upload, Star, Loader2, Search, Save, LogOut,
 } from 'lucide-react';
 import { supabase, PRODUCT_BUCKET } from '@/lib/supabase';
 import type { Category, Product } from '@/lib/types';
+import AdminLogin from './AdminLogin';
 
 type Tab = 'products' | 'categories';
 
 export default function AdminPanel({ onClose }: { onClose: () => void }) {
   const [tab, setTab] = useState<Tab>('products');
+  const [session, setSession] = useState<unknown>(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setCheckingAuth(false);
+    });
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setSession(null);
+  };
+
+  if (checkingAuth) {
+    return (
+      <div className="fixed inset-0 z-[90] flex items-center justify-center bg-navy-900">
+        <Loader2 className="h-8 w-8 animate-spin text-white/40" />
+      </div>
+    );
+  }
+
+  if (!session) {
+    return <AdminLogin onLoggedIn={() => setSession(true)} />;
+  }
 
   return (
     <motion.div
@@ -31,23 +58,33 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
           <h1 className="font-display text-lg font-extrabold text-white sm:text-xl">Admin Panel</h1>
         </div>
 
-        {/* tabs */}
-        <div className="flex gap-1 rounded-full bg-white/10 p-1">
+        <div className="flex items-center gap-2">
+          {/* tabs */}
+          <div className="flex gap-1 rounded-full bg-white/10 p-1">
+            <button
+              onClick={() => setTab('products')}
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-all sm:px-4 sm:text-sm ${
+                tab === 'products' ? 'bg-white text-navy-900' : 'text-white/70 hover:text-white'
+              }`}
+            >
+              <Package className="h-4 w-4" /> Products
+            </button>
+            <button
+              onClick={() => setTab('categories')}
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-all sm:px-4 sm:text-sm ${
+                tab === 'categories' ? 'bg-white text-navy-900' : 'text-white/70 hover:text-white'
+              }`}
+            >
+              <LayoutGrid className="h-4 w-4" /> Categories
+            </button>
+          </div>
+
+          {/* logout */}
           <button
-            onClick={() => setTab('products')}
-            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-all sm:px-4 sm:text-sm ${
-              tab === 'products' ? 'bg-white text-navy-900' : 'text-white/70 hover:text-white'
-            }`}
+            onClick={handleLogout}
+            className="flex items-center gap-1.5 rounded-full bg-bubble-500/20 px-3 py-2 text-xs font-bold text-bubble-300 transition-colors hover:bg-bubble-500/40 sm:text-sm"
           >
-            <Package className="h-4 w-4" /> Products
-          </button>
-          <button
-            onClick={() => setTab('categories')}
-            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-all sm:px-4 sm:text-sm ${
-              tab === 'categories' ? 'bg-white text-navy-900' : 'text-white/70 hover:text-white'
-            }`}
-          >
-            <LayoutGrid className="h-4 w-4" /> Categories
+            <LogOut className="h-4 w-4" /> <span className="hidden sm:inline">Logout</span>
           </button>
         </div>
       </div>
